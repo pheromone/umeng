@@ -7,6 +7,17 @@
 //
 
 #import "AppDelegate.h"
+#import "MobClick.h"
+#import "UMessage.h"
+#import "ViewController.h"
+#import "FirstViewController.h"
+#import "SeconedViewController.h"
+#import "ThirdViewController.h"
+#import "UMSocial.h"
+#import "UMSocialWechatHandler.h"
+#import "UMSocialQQHandler.h"
+#define UMSYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
+#define _IPHONE80_ 80000
 
 @interface AppDelegate ()
 
@@ -16,8 +27,64 @@
 
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-    // Override point for customization after application launch.
+
+    FirstViewController * first = [[FirstViewController alloc]init];
+    first.tabBarItem.title = @"第一";
+    first.view.backgroundColor = [UIColor yellowColor];
+    SeconedViewController * seconed = [[SeconedViewController alloc]init];
+    seconed.tabBarItem.title = @"第二";
+    seconed.view.backgroundColor = [UIColor redColor];
+    ThirdViewController * third = [[ThirdViewController alloc]init];
+    third.tabBarItem.title = @"第三";
+    third.view.backgroundColor = [UIColor grayColor];
+
+    UITabBarController * tabBarVC = [[UITabBarController alloc]init];
+    NSArray * controllers = @[first,seconed,third];
+    tabBarVC.viewControllers = controllers;
+    self.window.rootViewController = tabBarVC;
+
+    [MobClick startWithAppkey:@"从友盟账号里获取" reportPolicy:BATCH channelId:nil];
+    [UMessage startWithAppkey:@"从友盟账号里获取" launchOptions:launchOptions];
+    [UMessage setLogEnabled:YES];
+    //分享
+        [UMSocialData setAppKey:@"从友盟账号里获取"];
+    //设置微信AppId、appSecret，分享url
+    [UMSocialWechatHandler setWXAppId:@"从微信开放者账号里获取" appSecret:@"从微信开放者账号里获取" url:@"http://www.umeng.com/social"];
+    //QQ
+    [UMSocialQQHandler setQQWithAppId:@"从腾讯开放者获取" appKey:@"从腾讯开放者获取" url:@"http://www.umeng.com/social"];
+    
     return YES;
+}
+- (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken
+{
+    
+    [UMessage registerDeviceToken:deviceToken];
+         NSLog(@"didRegisterForRemoteNotificationsWithDeviceToken success");
+    NSLog(@"%@",[[[[deviceToken description] stringByReplacingOccurrencesOfString: @"<" withString: @""]
+                  stringByReplacingOccurrencesOfString: @">" withString: @""]
+                 stringByReplacingOccurrencesOfString: @" " withString: @""]);
+    UIAlertView * alert = [[UIAlertView alloc]initWithTitle:nil message:[NSString stringWithFormat:@"DeviceToken:%@",deviceToken] delegate:self cancelButtonTitle:nil otherButtonTitles:@"确定", nil];
+    
+    [alert show];
+    
+}
+- (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error{
+    NSString *error_str = [NSString stringWithFormat: @"%@", error];
+    NSLog(@"Failed to get token发生错误, error:%@", error_str);
+
+
+}
+
+
+- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo
+{
+    [UMessage didReceiveRemoteNotification:userInfo];
+    
+}
+
+- (void)onlineConfigCallBack:(NSNotification *)note {
+    
+    NSLog(@"online config has fininshed and note = %@", note.userInfo);
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application {
